@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from data_creation import create_data
 
-def main():
+def main_arg():
     # Vprašanje za izbiro GPU-ja
     while True:
         use_gpu = input("Ali želiš uporabiti GPU (če je na voljo)? (y/n): ").strip().lower()
@@ -37,6 +37,7 @@ def main():
             break
         except ValueError:
             print("Prosim vnesi int")
+            
     while True:
         try:
             epoch_count = int(input("Vnesi stevilo epoh (max: 10,000): "))
@@ -62,8 +63,12 @@ def main():
         except ValueError:
             print("Prosim vnesi int")
 
-    create_data(data_rows) # generira dataset 
+    # Vrnemo zbrane nastavitve, da jih lahko uporabimo v main funkciji
+    return data_rows, epoch_count, training_percent, eval_percent, device
 
+
+def main(data_rows, epoch_count, training_percent, eval_percent, device, test=True):
+    create_data(data_rows) # generira dataset 
 
     # 1. naloži podatke iz CSV datoteke in jih pretvori v PyTorch tenzorje
     data = np.loadtxt("data.csv", delimiter=",", skiprows=1) #pythorch tenzor
@@ -116,7 +121,6 @@ def main():
             model.train()                        # model se vrne v trenirni način, da lahko nadaljujemo s treniranjem
 
     # 5. Testiranje modela na testnem setu in izračun natančnosti (accuracy)
-
     model.eval()                                 # model nastavimo v eval mode
     with torch.no_grad():
         logits = model(X_test)                   # napovedi modela na testnem setu
@@ -126,14 +130,18 @@ def main():
         print(f"\nKončni Accuracy modela: {final_accuracy:.1f}%")
         print(f"uporabljeni podatki: {data_rows} | treniranje: {train_size} | validacija: {val_size} | testiranje: {len(test_idx)} | število epoh: {epoch_count}")
 
-    # SHRANJEVANJE ZAGONA (RUN-A)
+    # SHRANJEVANJE ZAGONA (RUN-A) V MAPO "saved_models"
+    models_dir = "saved_models"
+    os.makedirs(models_dir, exist_ok=True)  # Ustvari mapo, če ne obstaja
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_name = f"run_{timestamp}_epochs_{epoch_count}_rows_{data_rows}"
+    model_filepath = os.path.join(models_dir, f"{run_name}.pth")
     
-    # A) Shranimo uteži modela v .pth datoteko
-    torch.save(model.state_dict(), f"{run_name}.pth")
+    # A) Shranimo uteži modela v mapo
+    torch.save(model.state_dict(), model_filepath)
     
-    # B) Pripravimo podatke za JSON zapis
+    # B) Pripravimo podatke za JSON zapis (shranimo relativno pot do modela)
     run_data = {
         "timestamp": timestamp,
         "data_rows": data_rows,
@@ -144,7 +152,7 @@ def main():
         "val_size": val_size,
         "test_size": len(test_idx),
         "final_accuracy": round(final_accuracy, 2),
-        "model_file": f"{run_name}.pth"
+        "model_file": model_filepath
     }
 
     # C) Zapišemo/dodamo v skupno datoteko z vsemi zagoni
@@ -163,44 +171,47 @@ def main():
     with open(history_file, "w") as f:
         json.dump(runs_history, f, indent=4)
 
-    print(f"Zagon uspešno shranjen pod imenom: {run_name}")
+    print(f"Zagon uspešno shranjen. Model se nahaja v: {model_filepath}")
 
     # ročno preverjanje modela
-    while True:
-        print("\n ročno previrjanje modela: ")
-        try:
-            percent = float(input("Vnesi procent (0-100) (vnesite 1234 za izhod): "))
-            if percent < 0 or percent > 100:
-                print("Prosim vnesi procent med 0 in 100.")
+    if test == True:
+        while True:
+            print("\n ročno previrjanje modela: ")
+            try:
+                percent = float(input("Vnesi procent (0-100) (vnesite 1234 za izhod): "))
+                if percent < 0 or percent > 100:
+                    print("Prosim vnesi procent med 0 in 100.")
+                    continue
+                if percent == 1234:
+                    break
+                
+            except ValueError:
+                print("Prosim vnesi float")
                 continue
-            if percent == 1234:
-                break
-            
-        except ValueError:
-            print("Prosim vnesi float")
-            continue
-            
-        model.eval() 
-        with torch.no_grad():
-            input_tensor = torch.tensor([[percent / 100.0]], dtype=torch.float32).to(device) # pretvorimo procent v tensor in normaliziramo med 0 in 1 ter prestavimo na napravo
-            logits = model(input_tensor) # napoved modela (surove vrednosti)
-            
-            # Pretvori surove vrednosti (logits) v verjetnosti (odstotke) preko Softmax funkcije
-            probabilities = torch.softmax(logits, dim=1)
-            
-            prediction = torch.argmax(logits, dim=1).item() + 1 # izberemo oceno z največjo verjetnostjo in jo prilagodimo na 1-5
-            
-            print(f"Napovedana ocena za {percent}% je {prediction}")
-            print("Verjetnosti za posamezne ocene:")
-            
-            # Zanka za izpis verjetnosti za vsako oceno od 1 do 5
-            for grade in range(1, 6):
-                prob = probabilities[0][grade - 1].item() * 100
-                print(f"Ocena {grade}: {prob:.1f}%")
-                for i in range(int(prob // 2)):
-                    print("*", end="")
-                print() 
+                
+            model.eval() 
+            with torch.no_grad():
+                input_tensor = torch.tensor([[percent / 100.0]], dtype=torch.float32).to(device) # pretvorimo procent v tensor in normaliziramo med 0 in 1 ter prestavimo na napravo
+                logits = model(input_tensor) # napoved modela (surove vrednosti)
+                
+                # Pretvori surove vrednosti (logits) v verjetnosti (odstotke) preko Softmax funkcije
+                probabilities = torch.softmax(logits, dim=1)
+                
+                prediction = torch.argmax(logits, dim=1).item() + 1 # izberemo oceno z največjo verjetnostjo in jo prilagodimo na 1-5
+                
+                print(f"Napovedana ocena za {percent}% je {prediction}")
+                print("Verjetnosti za posamezne ocene:")
+                
+                # Zanka za izpis verjetnosti za vsako oceno od 1 do 5
+                for grade in range(1, 6):
+                    prob = probabilities[0][grade - 1].item() * 100
+                    print(f"Ocena {grade}: {prob:.1f}%")
+                    for i in range(int(prob // 2)):
+                        print("*", end="")
+                    print() 
 
     
 if __name__ == "__main__":
-    main()
+    # Pokličemo funkcijo za vnos argumentov in dobljene vrednosti posredujemo v main
+    d_rows, e_count, t_perc, e_perc, dev = main_arg()
+    main(d_rows, e_count, t_perc, e_perc, dev)

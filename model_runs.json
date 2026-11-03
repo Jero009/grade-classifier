@@ -1,14 +1,62 @@
 [
     {
-        "timestamp": "20261103_181327",
-        "data_rows": 10000,
-        "epoch_count": 1000,
-        "training_percent": 80.0,
-        "eval_percent": 10.0,
-        "train_size": 8000,
-        "val_size": 1000,
-        "test_size": 1000,
-        "final_accuracy": 65.9,
-        "model_file": "run_20261103_181327_epochs_1000_rows_10000.pth"
+        "timestamp": "20261103_183526",
+        "data_rows": 958842,
+        "epoch_count": 1313,
+        "training_percent": 3,
+        "eval_percent": 15,
+        "train_size": 28765,
+        "val_size": 143826,
+        "test_size": 786251,
+        "final_accuracy": 62.94,
+        "model_file": "saved_models/run_20261103_183526_epochs_1313_rows_958842.pth"
+    },
+    {
+        "timestamp": "20261103_183528",
+        "data_rows": 965729,
+        "epoch_count": 7197,
+        "training_percent": 9,
+        "eval_percent": 9,
+        "train_size": 86915,
+        "val_size": 86915,
+        "test_size": 791899,
+        "final_accuracy": 80.71,
+        "model_file": "saved_models/run_20261103_183528_epochs_7197_rows_965729.pth"
+    },
+    {
+        "timestamp": "20261103_183530",
+        "data_rows": 225256,
+        "epoch_count": 4108,
+        "training_percent": 68,
+        "eval_percent": 13,
+        "train_size": 153174,
+        "val_size": 29283,
+        "test_size": 42799,
+        "final_accuracy": 73.83,
+        "model_file": "saved_models/run_20261103_183530_epochs_4108_rows_225256.pth"
+    },
+    {
+        "timestamp": "20261103_183532",
+        "data_rows": 708040,
+        "epoch_count": 2168,
+        "training_percent": 50,
+        "eval_percent": 10,
+        "train_size": 354020,
+        "val_size": 70804,
+        "test_size": 283216,
+        "final_accuracy": 62.92,
+        "model_file": "saved_models/run_20261103_183532_epochs_2168_rows_708040.pth"
+    },
+    {
+        "timestamp": "20261103_183533",
+        "data_rows": 186215,
+        "epoch_count": 3456,
+        "training_percent": 11,
+        "eval_percent": 15,
+        "train_size": 20483,
+        "val_size": 27932,
+        "test_size": 137800,
+        "final_accuracy": 68.17,
+        "model_file": "saved_models/run_20261103_183533_epochs_3456_rows_186215.pth"
     }
 ]
