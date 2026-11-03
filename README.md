@@ -33,6 +33,12 @@ linearni klasifikator.
    .venv\Scripts\Activate.ps1
    ```
 
+   V Windows Command Promptu uporabi:
+
+   ```cmd
+   .venv\Scripts\activate.bat
+   ```
+
 3. Namesti odvisnosti:
 
    ```bash
@@ -41,6 +47,9 @@ linearni klasifikator.
 
    Če želiš uporabljati CUDA, namesti različico PyTorcha, ki ustreza tvojemu
    sistemu, z uradne strani [PyTorch](https://pytorch.org/get-started/locally/).
+
+Na Windowsu lahko ukaz `python` po potrebi zamenjaš z `py`, na Linuxu in
+macOS pa s `python3`, če je tako nastavljeno v tvojem sistemu.
 
 ## Uporaba
 
