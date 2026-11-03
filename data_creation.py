@@ -1,6 +1,6 @@
 import random as r
 import csv
-num_rows = 1000
+
 def create_data(num_rows):
     rows = []
     for i in range(num_rows):
@@ -22,5 +22,3 @@ def create_data(num_rows):
         w = csv.writer(f)
         w.writerow(["percent", "grade"])   # header
         w.writerows(rows)  
-
-create_data(num_rows)
