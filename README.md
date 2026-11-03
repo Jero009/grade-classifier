@@ -107,6 +107,16 @@ Program prikaže:
 
 Grafi se prikažejo v oknih Matplotlib.
 
+### Google Colab
+
+Za uporabo v brskalniku odpri datoteko
+[`grade_classifier_colab.ipynb`](./grade_classifier_colab.ipynb) v Google Colabu.
+V beležnici izberi **Runtime > Change runtime type > T4 GPU**, če želiš
+uporabiti GPU, nato pa celice zaženi po vrstnem redu.
+
+Colab različica vključuje namestitev knjižnic, generiranje podatkov, treniranje,
+testiranje, napoved za izbrani odstotek in prenos naučenega modela.
+
 ## Struktura projekta
 
 | Datoteka | Namen |
