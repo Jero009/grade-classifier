@@ -4,12 +4,27 @@ import torch.optim as optim
 import numpy as np
 from data_creation import create_data
 
-
-
 def main():
+    # Vprašanje za izbiro GPU-ja
+    while True:
+        use_gpu = input("Ali želiš uporabiti GPU (če je na voljo)? (y/n): ").strip().lower()
+        if use_gpu in ['y', 'n']:
+            break
+        print("Prosim vnesi 'y' za da ali 'n' za ne.")
+
+    if use_gpu == 'y' and torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("Uporabljam napravo: GPU (CUDA)")
+    else:
+        device = torch.device("cpu")
+        if use_gpu == 'y':
+            print("GPU ni na voljo, zato uporabljam CPU.")
+        else:
+            print("Uporabljam napravo: CPU")
+
     while True:
         try:
-            data_rows = int(input("Vnesi stevilo linij podatkov: "))
+            data_rows = int(input("Vnesi stevilo linij podatkov (max: 1,000,000): "))
             if data_rows <= 0:
                 print("Prosim vnesi pozitivno število.")
                 continue
@@ -21,7 +36,7 @@ def main():
             print("Prosim vnesi int")
     while True:
         try:
-            epoch_count = int(input("Vnesi stevilo epoh: "))
+            epoch_count = int(input("Vnesi stevilo epoh (max: 10,000): "))
             if epoch_count <= 0:
                 print("Prosim vnesi pozitivno število.")
                 continue
@@ -49,8 +64,8 @@ def main():
 
     # 1. naloži podatke iz CSV datoteke in jih pretvori v PyTorch tenzorje
     data = np.loadtxt("data.csv", delimiter=",", skiprows=1) #pythorch tenzor
-    X = torch.tensor(data[:, 0:1], dtype=torch.float32) / 100.0  # procente spremenimo med 0 in 1
-    y = torch.tensor(data[:, 1] - 1, dtype=torch.long)          # ocene premaknmo da so od 0 do 4 
+    X = torch.tensor(data[:, 0:1], dtype=torch.float32).to(device) / 100.0  # procente spremenimo med 0 in 1
+    y = torch.tensor(data[:, 1] - 1, dtype=torch.long).to(device)          # ocene premaknmo da so od 0 do 4 
 
     # 2. premešamo podatke (če bi uporabljali podatke, ki nebi bili naključno generirani, bi bilo to potrebno)
     num_samples = len(data)
@@ -78,7 +93,7 @@ def main():
     y_test = y[test_idx]
 
     # 3. ustvarimo model 
-    model = nn.Linear(1, 5)                      # Linearni klasifikator, ki sprejme 1 vhodno funkcijo (procent) in vrne 5 izhodnih vrednosti (grade 0-4)
+    model = nn.Linear(1, 5).to(device)           # Linearni klasifikator, ki sprejme 1 vhodno funkcijo (procent) in vrne 5 izhodnih vrednosti (grade 0-4)
     criterion = nn.CrossEntropyLoss()            # Loss function ki meri razliko med napovedanimi in dejanskimi ocenami (grade 0-4)
     optimizer = optim.SGD(model.parameters(), lr=0.05) # Optimizer za posodabljanje teže modela na podlagi izračunanih gradientov
 
@@ -105,6 +120,44 @@ def main():
         predictions = torch.argmax(logits, dim=1) # glede na izhodne vrednosti modela izberemo tisto z največjo verjetnostjo kot napovedano oceno
         accuracy = (predictions == y_test).float().mean() # izračunamo natančnost modela na testnem setu kot delež pravilno napovedanih ocen glede na dejanske ocene
         print(f"\nKončni Accuracy modela: {accuracy.item() * 100:.1f}%")
+        print(f"uporabljeni podatki: {data_rows} | treniranje: {train_size} | validacija: {val_size} | testiranje: {len(test_idx)} | število epoh: {epoch_count}")
+    
+    # ročno preverjanje modela
+    while True:
+        print("\n ročno previrjanje modela: ")
+        try:
+            percent = float(input("Vnesi procent (0-100) (vnesite 1234 za izhod): "))
+            if percent < 0 or percent > 100:
+                print("Prosim vnesi procent med 0 in 100.")
+                continue
+            if percent == 1234:
+                break
+            
+        except ValueError:
+            print("Prosim vnesi float")
+            continue
+            
+        model.eval() 
+        with torch.no_grad():
+            input_tensor = torch.tensor([[percent / 100.0]], dtype=torch.float32).to(device) # pretvorimo procent v tensor in normaliziramo med 0 in 1 ter prestavimo na napravo
+            logits = model(input_tensor) # napoved modela (surove vrednosti)
+            
+            # Pretvori surove vrednosti (logits) v verjetnosti (odstotke) preko Softmax funkcije
+            probabilities = torch.softmax(logits, dim=1)
+            
+            prediction = torch.argmax(logits, dim=1).item() + 1 # izberemo oceno z največjo verjetnostjo in jo prilagodimo na 1-5
+            
+            print(f"Napovedana ocena za {percent}% je {prediction}")
+            print("Verjetnosti za posamezne ocene:")
+            
+            # Zanka za izpis verjetnosti za vsako oceno od 1 do 5
+            for grade in range(1, 6):
+                prob = probabilities[0][grade - 1].item() * 100
+                print(f"Ocena {grade}: {prob:.1f}%")
+                for i in range(int(prob // 2)):
+                    print("*", end="")
+                print() 
 
+    
 if __name__ == "__main__":
     main()
