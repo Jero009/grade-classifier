@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import json
+import os
+from datetime import datetime
 from data_creation import create_data
 
 def main():
@@ -119,9 +122,49 @@ def main():
         logits = model(X_test)                   # napovedi modela na testnem setu
         predictions = torch.argmax(logits, dim=1) # glede na izhodne vrednosti modela izberemo tisto z največjo verjetnostjo kot napovedano oceno
         accuracy = (predictions == y_test).float().mean() # izračunamo natančnost modela na testnem setu kot delež pravilno napovedanih ocen glede na dejanske ocene
-        print(f"\nKončni Accuracy modela: {accuracy.item() * 100:.1f}%")
+        final_accuracy = accuracy.item() * 100
+        print(f"\nKončni Accuracy modela: {final_accuracy:.1f}%")
         print(f"uporabljeni podatki: {data_rows} | treniranje: {train_size} | validacija: {val_size} | testiranje: {len(test_idx)} | število epoh: {epoch_count}")
+
+    # SHRANJEVANJE ZAGONA (RUN-A)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"run_{timestamp}_epochs_{epoch_count}_rows_{data_rows}"
     
+    # A) Shranimo uteži modela v .pth datoteko
+    torch.save(model.state_dict(), f"{run_name}.pth")
+    
+    # B) Pripravimo podatke za JSON zapis
+    run_data = {
+        "timestamp": timestamp,
+        "data_rows": data_rows,
+        "epoch_count": epoch_count,
+        "training_percent": training_percent,
+        "eval_percent": eval_percent,
+        "train_size": train_size,
+        "val_size": val_size,
+        "test_size": len(test_idx),
+        "final_accuracy": round(final_accuracy, 2),
+        "model_file": f"{run_name}.pth"
+    }
+
+    # C) Zapišemo/dodamo v skupno datoteko z vsemi zagoni
+    history_file = "model_runs.json"
+    if os.path.exists(history_file):
+        with open(history_file, "r") as f:
+            try:
+                runs_history = json.load(f)
+            except json.JSONDecodeError:
+                runs_history = []
+    else:
+        runs_history = []
+
+    runs_history.append(run_data)
+
+    with open(history_file, "w") as f:
+        json.dump(runs_history, f, indent=4)
+
+    print(f"Zagon uspešno shranjen pod imenom: {run_name}")
+
     # ročno preverjanje modela
     while True:
         print("\n ročno previrjanje modela: ")

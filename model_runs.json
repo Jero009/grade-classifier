@@ -1,0 +1,14 @@
+[
+    {
+        "timestamp": "20261103_181327",
+        "data_rows": 10000,
+        "epoch_count": 1000,
+        "training_percent": 80.0,
+        "eval_percent": 10.0,
+        "train_size": 8000,
+        "val_size": 1000,
+        "test_size": 1000,
+        "final_accuracy": 65.9,
+        "model_file": "run_20261103_181327_epochs_1000_rows_10000.pth"
+    }
+]
