@@ -101,7 +101,13 @@ def main(data_rows, epoch_count, training_percent, eval_percent, device, test=Tr
     y_test = y[test_idx]
 
     # 3. ustvarimo model 
-    model = nn.Linear(1, 5).to(device)           # Linearni klasifikator, ki sprejme 1 vhodno funkcijo (procent) in vrne 5 izhodnih vrednosti (grade 0-4)
+    #model = nn.Linear(1, 5).to(device)   
+    #         # Linearni klasifikator, ki sprejme 1 vhodno funkcijo (procent) in vrne 5 izhodnih vrednosti (grade 0-4)
+    model = nn.Sequential(
+        nn.Linear(1,7), #vhodna plast ki sprejme 1 vhod
+        nn.ReLU(), #aktivacijska funkcija ReLU
+        nn.Linear(7,5) #izhodna plast ki vrne 5 izhodnih vrednosti (grade 0-4)
+    ).to(device)
     criterion = nn.CrossEntropyLoss()            # Loss function ki meri razliko med napovedanimi in dejanskimi ocenami (grade 0-4)
     optimizer = optim.SGD(model.parameters(), lr=0.05) # Optimizer za posodabljanje teže modela na podlagi izračunanih gradientov
 
