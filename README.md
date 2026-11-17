@@ -4,6 +4,12 @@ Projekt uporablja PyTorch za napoved ocene od 1 do 5 na podlagi odstotka
 uspešnosti. Podatki so trenutno umetno generirani, model pa je preprost
 linearni klasifikator.
 
+## Google colab
+link za dostop google colb
+- https://colab.research.google.com/github/Jero009/grade-classifier/blob/main/napoved_ocen.ipynb
+
+
+
 ## Zahteve
 
 - Python 3.10 ali novejši
